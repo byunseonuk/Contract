@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="userMapper">
+	<resultMap type="com.exam.test.model.UserVO" id="userResultMap">
+		<result property="_id" column="_id"/>
+		<result property="identifier" column="identifier"/>
+		<result property="password" column="password"/>
+		<result property="name" column="name"/>
+		<result property="phone" column="phone"/>
+		<result property="email" column="email"/>
+		<result property="role" column="role"/>
+		<result property="createdAt" column="createdAt"/>
+		<result property="updatedAt" column="updatedAt"/>
+	</resultMap>
+	
+	<insert id="insertUser">
+		INSERT INTO user (
+			identifier,
+			password,
+			name,
+			phone,
+			email,
+			role,
+			createdAt,
+			updatedAt
+		) VALUES(
+			#{identifier},
+			#{password},
+			#{name},
+			#{phone},
+			#{email},
+			#{role},
+			now(),
+			now()
+		)
+	</insert>
+	
+	<select id="getUser" resultMap="userResultMap">
+		SELECT * FROM user WHERE identifier=#{identifier}
+	</select>
+	
+	<select id="getUserList" resultMap="userResultMap">
+		SELECT * FROM user
+	</select>
+	
+	<select id="getMyInfo" resultMap="userResultMap">
+		SELECT * FROM user WHERE _id=#{_id}
+	</select>
+	
+	<select id="getApplicantInfo" resultMap="userResultMap">
+		SELECT name, phone, email
+		FROM user
+		WHERE _id=#{user_id}
+	</select>
+	
+</mapper>

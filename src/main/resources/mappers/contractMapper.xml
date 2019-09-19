@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="contractMapper">
+	<resultMap id="contractMap" type="com.exam.test.model.ContractVO">
+		<result property="_id" column="_id"/>
+		<result property="employer" column="employer"/>
+		<result property="employer_address" column="employer_address"/>
+		<result property="employer_tel" column="employer_tel"/>
+		<result property="employer_id" column="employer_id"/>
+		<result property="employee" column="employee"/>
+		<result property="employee_address" column="employee_address"/>
+		<result property="employee_tel" column="employee_tel"/>
+		<result property="employee_id" column="employee_id"/>
+		<result property="start_date" column="start_date"/>
+		<result property="end_date" column="end_date"/>
+		<result property="work_place" column="work_place"/>
+		<result property="work_details" column="work_details"/>
+		<result property="start_time" column="start_time"/>
+		<result property="end_time" column="end_time"/>
+		<result property="break_time" column="break_time"/>
+		<result property="work_date" column="work_date"/>
+		<result property="holiday" column="holiday"/>
+		<result property="salary" column="salary"/>
+		<result property="bonus" column="bonus"/>
+		<result property="other_benefits" column="other_benefits"/>
+		<result property="payment_date" column="payment_date"/>
+		<result property="payment_method" column="payment_method"/>
+		<result property="insurance1" column="insurance1"/>
+		<result property="insurance2" column="insurance2"/>
+		<result property="insurance3" column="insurance3"/>
+		<result property="insurance4" column="insurance4"/>
+		<result property="other_contents" column="other_contents"/>
+		<result property="state" column="state"/>
+		<result property="contract_date" column="contract_date"/>
+		<result property="recordBlock" column="recordBlock"/>
+	</resultMap>
+
+	<resultMap type="com.exam.test.model.ContractBlockVO" id="contractBlockMap">
+		<result property="contract_id" column="contract_id"/>
+		<result property="transactionHash" column="transactionHash"/>
+		<result property="blockHash" column="blockHash"/>
+		<result property="blockNumber" column="blockNumber"/>
+		<result property="confirmEE" column="confirmEE"/>
+		<result property="confirmER" column="confirmER"/>
+	</resultMap>
+
+	<!--######################### INSERT  ############################-->
+
+	<insert id="sendContract">
+		<selectKey resultType="integer" keyProperty="_id" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO contract(
+			employer, employer_address, employer_tel, employer_id,
+			employee, employee_address, employee_tel, employee_id, start_date, end_date,
+			work_place, work_details, start_time, end_time, break_time, work_date, holiday,
+			salary, bonus, other_benefits, payment_date, payment_method,
+			insurance1, insurance2, insurance3, insurance4, other_contents, state, contract_date, recordBlock
+		) VALUES(
+			#{employer}, #{employer_address}, #{employer_tel}, #{employer_id},
+			#{employee}, #{employee_address}, #{employee_tel}, #{employee_id}, #{start_date}, #{end_date},
+			#{work_place}, #{work_details}, #{start_time}, #{end_time}, #{break_time}, #{work_date}, #{holiday},
+			#{salary}, #{bonus}, #{other_benefits}, #{payment_date}, #{payment_method},
+			#{insurance1}, #{insurance2}, #{insurance3}, #{insurance4}, #{other_contents}, "wait", now(), false
+		)
+	</insert>
+	
+	<insert id="insertTransaction">
+		INSERT INTO contract_block(
+			contract_id, transactionHash, blockHash, blockNumber, confirmEE, confirmER
+		)VALUES(
+			#{contract_id}, #{transactionHash}, "", NULL, false, false
+		)
+
+	</insert>
+	
+	<!--######################### SELECT  ############################-->
+	
+	<select id="getMyContractER" resultMap="contractMap">
+		SELECT _id, employer, employer_address, employer_tel, employer_id,
+			employee, employee_address, employee_tel, employee_id, start_date, end_date,
+			work_place, work_details, start_time, end_time, break_time, work_date, holiday,
+			salary, bonus, other_benefits, payment_date, payment_method,
+			insurance1, insurance2, insurance3, insurance4, other_contents, state, 
+			DATE_FORMAT(contract_date,"%Y-%m-%d") as contract_date,	recordBlock
+		FROM contract
+		WHERE employer_id=#{_id}
+	</select>
+	
+	<select id="getMyContractEE" resultMap="contractMap">
+		SELECT _id, employer, employer_address, employer_tel, employer_id,
+			employee, employee_address, employee_tel, employee_id, start_date, end_date,
+			work_place, work_details, start_time, end_time, break_time, work_date, holiday,
+			salary, bonus, other_benefits, payment_date, payment_method,
+			insurance1, insurance2, insurance3, insurance4, other_contents, state, 
+			DATE_FORMAT(contract_date,"%Y-%m-%d") as contract_date, recordBlock
+		FROM contract
+		WHERE employee_id=#{_id}
+	</select>
+	
+	<select id="getContract" resultMap="contractMap">
+		SELECT * FROM contract WHERE _id=#{contract_id}
+	</select>
+	
+	<select id="getIngContractEmployee" resultMap="contractMap">
+		SELECT * FROM contract WHERE employee_id=#{_id} AND (state="accept" OR state="wait")
+	</select>
+	
+	<select id="getIngContractEmployer" resultMap="contractMap">
+		SELECT * FROM contract WHERE employer_id=#{_id} AND (state="accept" OR state="wait")
+	</select>
+	
+	<!-- DB에 블록정보가 없는 계약 조회  -->
+	<select id="getNotConfirmContractBlock" resultMap="contractBlockMap">
+		SELECT * FROM contract_block WHERE blockNumber IS NULL
+	</select>
+	
+	<select id="checkRecordBlockEmployee" resultMap="contractMap">
+		SELECT * FROM contract WHERE employee_id=#{_id} AND confirmEE=false;
+	</select>
+	
+	<select id="checkRecordBlockEmployer" resultMap="contractMap">
+		SELECT * FROM contract WHERE employer_id=#{_id} AND confirmER=false;
+	</select>
+	
+	<select id="socketCheckRecordBlockEmployee" resultMap="contractMap">
+		SELECT COUNT(*) FROM contract WHERE employee_id=#{_id} AND confirmEE=false;
+	</select>
+	
+	<select id="socketCheckRecordBlockEmployer" resultMap="contractMap">
+		SELECT COUNT(*) FROM contract WHERE employer_id=#{_id} AND confirmER=false;
+	</select>
+	
+	<!--######################### UPDATE  ############################-->
+	
+	<update id="updateContractState">
+		UPDATE contract
+		SET state = #{state}
+		WHERE _id=#{contract_id}
+	</update>
+	
+	<update id="changeApplyState">
+		UPDATE apply
+		SET state = #{state}, contract_id=#{contract_id}
+		WHERE _id=#{apply_id}
+	</update>
+	
+	<update id="insertBlockInfo">
+		UPDATE contract_block
+		SET blockHash = #{blockHash}, blockNumber = #{blockNumber}
+		WHERE contract_id=#{contract_id}
+	</update>
+	
+	<update id="confirmBlockEmployee">
+		UPDATE contract
+		SET confirmEE=true;
+		WHERE _id=#{_id}
+	</update>
+		
+	<update id="confirmBlockEmployer">
+		UPDATE contract
+		SET confirmER=true;
+		WHERE _id=#{_id}
+	</update>
+</mapper>

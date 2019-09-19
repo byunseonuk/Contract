@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="recruitMapper">
+	<resultMap type="com.exam.test.model.RecruitmentVO" id="recruitResultMap">
+		<result property="_id" column="_id"/>
+		<result property="createdAt" column="createdAt"/>
+		<result property="updatedAt" column="updatedAt"/>
+		<result property="company" column="company"/>
+		<result property="isEnded" column="isEnded"/>
+		<result property="title" column="title"/>
+		<result property="managerName" column="managerName"/>
+		<result property="managerTel" column="managerTel"/>
+		<result property="managerEmail" column="managerEmail"/>
+		<result property="companyTel" column="companyTel"/>
+		<result property="address" column="address"/>
+		<result property="owner" column="owner"/>
+		<result property="endDate" column="endDate"/>
+		<result property="gender" column="gender"/>
+		<result property="preferential" column="preferential"/>
+		<result property="education" column="education"/>
+		<result property="personnel" column="personnel"/>
+		<result property="age" column="age"/>
+		<result property="salary" column="salary"/>
+		<result property="salaryType" column="salaryType"/>
+		<result property="workPeriod" column="workPeriod"/>
+		<result property="workDay" column="workDay"/>
+		<result property="workTime" column="workTime"/>
+		<result property="workType" column="workType"/>
+	</resultMap>
+	
+	<resultMap type="com.exam.test.model.RecruitThumbVO" id="recruitThumbMap">
+		<result property="_id" column="_id"/>
+		<result property="company" column="company"/>
+		<result property="title" column="title"/>
+		<result property="endDate" column="endDate"/>
+		<result property="workTime" column="workTime"/>
+		<result property="workType" column="workType"/>
+	</resultMap>
+	
+	<resultMap type="com.exam.test.model.SimpleApplicantVO" id="saResultMap">
+		<result property="user_id" column="_id" />
+		<result property="user_name" column="name" />
+		<result property="resume_id" column="resume_id" />
+		<result property="educationState" column="educationState" />
+		<result property="apply_id" column="apply_id" />
+	</resultMap>
+	
+	<insert id="insertRecruit">
+		INSERT INTO recruitment (
+			createdAt, updatedAt, company, title, managerName, managerTel,
+			managerEmail, companyTel, address, owner, endDate, gender,
+			preferential, education, personnel, age, salary, salaryType,
+			workPeriod, workDay, workTime, workType
+		) VALUES (
+			now(), now(), #{company}, #{title}, #{managerName}, #{managerTel},
+			#{managerEmail}, #{companyTel}, #{address}, #{owner}, STR_TO_DATE(#{endDate},'%Y-%m-%d'),
+			#{gender}, #{preferential}, #{education}, #{personnel}, #{age},
+			#{salary}, #{salaryType}, #{workPeriod}, #{workDay}, #{workTime}, #{workType}
+		)
+	</insert>
+	
+	
+	
+	<!-- 끝나지 않은 내 공고 리스트  -->
+	<select id="getMyNotEndRecruitList" resultMap="recruitResultMap">
+		SELECT *
+		FROM recruitment
+		WHERE owner=#{owner} and isEnded=false
+	</select>
+	<!-- 마감일이 지난 내 공고 리스트 -->
+	<select id="getMyEndRecruitList" resultMap="recruitResultMap">
+		SELECT *
+		FROM recruitment
+		WHERE owner=#{owner} and isEnded=true
+	</select>
+	<!-- 해당번호의 공고 -->
+	<select id="getRecruit" resultMap="recruitResultMap">
+		SELECT *
+		FROM recruitment
+		WHERE _id=#{_id}
+	</select>
+	
+	<select id="getRecruitList" resultMap="recruitThumbMap">
+		SELECT
+			_id,
+			company,
+			title,
+			DATE_FORMAT(endDate,"%Y-%m-%d") as endDate,
+			workTime,
+			workType
+		FROM recruitment
+		LIMIT #{start},8;
+	</select>
+	
+	<select id="getAreaRecruitList" resultMap="recruitThumbMap">
+		SELECT 
+			_id,
+			company,
+			title,
+			DATE_FORMAT(endDate,"%Y-%m-%d") as endDate,
+			workTime,
+			workType
+		FROM recruitment
+		WHERE address LIKE CONCAT('%',(SELECT areaName
+													FROM area
+													WHERE areaCode = #{area}
+												),'%')
+	</select>
+	<select id="getApplicantList" resultMap="saResultMap">
+		<!-- SELECT _id, name
+		FROM user
+		WHERE _id IN (SELECT user_no
+                		FROM apply
+                		WHERE recruit_no = #{rcodnum}) -->
+    SELECT u._id, u.name, b.resume_id, r.educationState, b._id as apply_id
+		FROM user u INNER JOIN (SELECT user_id,resume_id,_id
+                		FROM apply
+                		WHERE recruit_id = #{rcodnum} AND state="wait") b ON u._id=b.user_id INNER JOIN resume r ON b.resume_id = r._id
+	</select>
+</mapper>

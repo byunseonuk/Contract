@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="resumeMapper">
+
+	<resultMap id="resumeMap" type="com.exam.test.model.ResumeVO">
+		<result property="_id" column="_id"/>
+		<result property="user_id" column="user_id"/>
+		<result property="title" column="title"/>
+		<result property="graduationDate" column="graduationDate"/>
+		<result property="admissionDate" column="admissionDate"/>
+		<result property="educationState" column="educationState"/>
+		<result property="schoolName" column="schoolName"/>
+		<result property="major" column="major"/>
+		<result property="selfIntroduction" column="selfIntroduction"/>
+	</resultMap>
+	
+	<resultMap id="careerMap" type="com.exam.test.model.CareerVO">
+		<result property="_id" column="_id"/>
+		<result property="resume_id" column="resume_id"/>
+		<result property="startDate" column="startDate"/>
+		<result property="endDate" column="endDate"/>
+		<result property="companyName" column="companyName"/>
+		<result property="position" column="position"/>
+		<result property="work" column="work"/>
+	</resultMap>
+	
+	<resultMap id="certificateMap" type="com.exam.test.model.CertificateVO">
+		<result property="_id" column="_id"/>
+		<result property="resume_id" column="resume_id"/>
+		<result property="name" column="name"/>
+		<result property="publisher" column="publisher"/>
+		<result property="date" column="date"/>
+	</resultMap>
+	
+	<resultMap id="languageMap" type="com.exam.test.model.LanguageVO">
+		<result property="_id" column="_id"/>
+		<result property="resume_id" column="resume_id"/>
+		<result property="kinds" column="kinds"/>
+		<result property="score" column="score"/>
+		<result property="date" column="date"/>
+	</resultMap>
+	
+	<resultMap id="simpleApplyMap" type="com.exam.test.model.SimpleApplyVO">
+		<result property="resume_id" column="resume_id"/>
+		<result property="recruit_id" column="recruit_id"/>
+		<result property="recruit_title" column="title"/>
+		<result property="company" column="company"/>
+		<result property="state" column="state"/>
+		<result property="contract_id" column="contract_id"/>
+	</resultMap>
+	
+	<resultMap id="contractMap" type="com.exam.test.model.ContractVO">
+		<result property="_id" column="_id"/>
+		<result property="employer" column="employer"/>
+		<result property="employer_address" column="employer_address"/>
+		<result property="employer_tel" column="employer_tel"/>
+		<result property="employer_id" column="employer_id"/>
+		<result property="employee" column="employee"/>
+		<result property="employee_address" column="employee_address"/>
+		<result property="employee_tel" column="employee_tel"/>
+		<result property="employee_id" column="employee_id"/>
+		<result property="start_date" column="start_date"/>
+		<result property="end_date" column="end_date"/>
+		<result property="work_place" column="work_place"/>
+		<result property="work_details" column="work_details"/>
+		<result property="start_time" column="start_time"/>
+		<result property="end_time" column="end_time"/>
+		<result property="break_time" column="break_time"/>
+		<result property="work_date" column="work_date"/>
+		<result property="holiday" column="holiday"/>
+		<result property="salary" column="salary"/>
+		<result property="bonus" column="bonus"/>
+		<result property="other_benefits" column="other_benefits"/>
+		<result property="payment_date" column="payment_date"/>
+		<result property="payment_method" column="payment_method"/>
+		<result property="insurance1" column="insurance1"/>
+		<result property="insurance2" column="insurance2"/>
+		<result property="insurance3" column="insurance3"/>
+		<result property="insurance4" column="insurance4"/>
+		<result property="other_contents" column="other_contents"/>
+		<result property="state" column="state"/>
+		<result property="contract_date" column="contract_date"/>
+		<result property="transactionHash" column="transactionHash"/>
+		<result property="recordBlock" column="recordBlock"/>
+		<result property="confirmEE" column="confirmEE"/>
+		<result property="confirmER" column="confirmER"/>
+	</resultMap>
+	
+	<!-- ################   INSERT #################### -->
+	<insert id="insertResume">
+		<selectKey resultType="integer" keyProperty="_id" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO resume(
+			user_id, title, graduationDate, admissionDate, 
+			educationState, schoolName, major, selfIntroduction
+		) values(
+			#{user_id},#{title},#{graduationDate},#{admissionDate},
+			#{educationState},#{schoolName},#{major},#{selfIntroduction}
+		)
+	</insert>
+	
+	<insert id="insertCareer">
+		INSERT INTO career(
+			resume_id, startDate, endDate, companyName, position, work
+		) values
+		<foreach collection="list" item="item">
+			(
+				#{resume_id}, #{item.startDate}, #{item.endDate}, #{item.companyName}, #{item.position}, #{item.work}
+			)
+		</foreach>
+		
+	</insert>
+	
+	<insert id="insertCertificate">
+		INSERT INTO certificate(
+			resume_id, name, publisher, date
+		) values(
+			#{resume_id}, #{name},
+			#{publisher}, #{date}
+		)
+
+	</insert>
+	
+	<insert id="insertLanguage">
+		INSERT INTO foreign_language(
+			resume_id, kinds, score, date
+		) values (
+			#{resume_id}, #{kinds},
+			#{score}, #{date}
+		)
+
+	</insert>
+	
+	<insert id="insertApply">
+		INSERT INTO apply(
+			user_id, recruit_id, resume_id, createdAt, state
+		) VALUES (
+			#{user_id}, #{recruit_id}, #{resume_id}, now(), "wait"
+		)
+	</insert>
+		
+	
+	<!-- ################   SELECT #################### -->
+	<select id="getResume" resultMap="resumeMap">
+		SELECT *
+		FROM resume
+		WHERE _id = #{resume_id}
+	</select>
+	
+	<select id="getCareer" resultMap="careerMap">
+		SELECT *
+		FROM career
+		WHERE resume_id = #{resume_id}
+	</select>
+	
+	<select id="getCertificate" resultMap="certificateMap">
+		SELECT *
+		FROM certificate
+		WHERE resume_id = #{resume_id}
+	</select>
+	
+	<select id="getLanguage" resultMap="languageMap">
+		SELECT *
+		FROM foreign_language
+		WHERE resume_id = #{resume_id}
+	</select>
+	
+	<select id="getMyResumeList" resultMap="resumeMap">
+		SELECT *
+		FROM resume
+		WHERE user_id=#{get_id}
+	</select>
+	
+	<select id="myApplyList" resultMap="simpleApplyMap">
+		SELECT r.title, r.company, a.recruit_id, a.resume_id, a.state, a.contract_id
+		FROM recruitment r INNER JOIN( SELECT * 
+										FROM apply 
+										WHERE user_id=#{_id}) a ON r._id = a.recruit_id
+	</select>
+	
+	
+	
+	<!--################ UPDATE #################  -->
+
+	
+	<update id="modifyResume">
+		UPDATE resume
+		SET	schoolName=#{schoolName}, title=#{title}, graduationDate=#{graduationDate}, admissionDate=#{admissionDate}, 
+			educationState=#{educationState}, major=#{major}, selfIntroduction=#{selfIntroduction} 
+		WHERE _id=#{_id}
+	</update>
+	
+	<update id="modifyCareer">
+		UPDATE career
+		SET	startDate=#{startDate}, endDate=#{endDate}, companyName=#{companyName}, position=#{position}, work=#{work}
+		WHERE resume_id=#{resume_id} AND _id=#{_id}
+	</update>
+	
+	<update id="modifyCertificate">
+		UPDATE certificate
+		SET	name=#{name}, publisher=#{publisher}, date=#{date}
+		WHERE resume_id=#{resume_id} AND _id=#{_id}
+	</update>
+	
+	<update id="modifyLanguage">
+		UPDATE foreign_language
+		SET	kinds=#{kinds}, score=#{score}, date=#{date}
+		WHERE resume_id=#{resume_id} AND _id=#{_id}
+	</update>
+</mapper>
